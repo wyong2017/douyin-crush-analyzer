@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金达莱 - 抖音画像分析报告</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; background: #fff; padding: 8px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow-x: auto; }
+    .tab { padding: 12px 20px; border: none; background: transparent; cursor: pointer; border-radius: 8px; font-size: 14px; white-space: nowrap; transition: all 0.2s; }
+    .tab:hover { background: #f0f0f0; }
+    .tab.active { background: #FF2442; color: #fff; }
+    
+    /* Tab content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Cards */
+    .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #333; display: flex; align-items: center; gap: 8px; }
+    .card h3 { font-size: 16px; margin: 16px 0 12px; color: #555; }
+    
+    /* Profile header */
+    .profile-header { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+    .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #FF2442, #ff6b6b); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 36px; font-weight: bold; }
+    .profile-info { flex: 1; min-width: 250px; }
+    .profile-name { font-size: 28px; font-weight: bold; margin-bottom: 8px; }
+    .profile-bio { color: #666; margin-bottom: 12px; line-height: 1.6; }
+    .profile-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .tag { background: #f0f0f0; padding: 4px 12px; border-radius: 16px; font-size: 13px; color: #666; }
+    .tag.highlight { background: #FF2442; color: #fff; }
+    
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 16px; margin-top: 16px; }
+    .stat { text-align: center; padding: 16px; background: #fafafa; border-radius: 8px; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #FF2442; }
+    .stat-label { font-size: 12px; color: #999; margin-top: 4px; }
+    
+    /* Confidence */
+    .confidence { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 8px; }
+    .confidence-high { background: #22c55e; color: #fff; }
+    .confidence-medium { background: #eab308; color: #fff; }
+    .confidence-low { background: #9ca3af; color: #fff; }
+    
+    /* Analysis item */
+    .analysis-item { padding: 16px; background: #fafafa; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #FF2442; }
+    .analysis-item h4 { font-size: 14px; color: #FF2442; margin-bottom: 8px; }
+    .analysis-item p { font-size: 14px; line-height: 1.8; color: #555; }
+    .evidence { background: #fff; padding: 8px 12px; border-radius: 4px; margin-top: 8px; font-size: 13px; color: #888; border: 1px dashed #ddd; }
+    
+    /* Chart container */
+    .chart-container { position: relative; height: 300px; margin: 20px 0; }
+    
+    /* Notes list */
+    .notes-list { max-height: 600px; overflow-y: auto; }
+    .note-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .note-item:hover { background: #fafafa; }
+    .note-title { flex: 1; font-size: 14px; }
+    .note-likes { color: #FF2442; font-size: 13px; margin-left: 12px; white-space: nowrap; }
+    
+    /* Category chart */
+    .category-bar { display: flex; align-items: center; margin-bottom: 12px; }
+    .category-label { width: 100px; font-size: 13px; color: #666; }
+    .category-fill { height: 24px; background: linear-gradient(90deg, #FF2442, #ff6b6b); border-radius: 4px; display: flex; align-items: center; padding-left: 8px; color: #fff; font-size: 12px; }
+    
+    /* Radar chart container */
+    .radar-container { display: flex; justify-content: center; align-items: center; }
+    .radar-chart-wrapper { width: 100%; max-width: 400px; }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .profile-header { flex-direction: column; align-items: center; text-align: center; }
+      .profile-tags { justify-content: center; }
+      .tabs { flex-wrap: nowrap; }
+    }
+    
+    /* Search input */
+    .search-input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+    .search-input:focus { outline: none; border-color: #FF2442; }
+    
+    /* Methodology */
+    .method-item { padding: 16px; background: #f8f9fa; border-radius: 8px; margin-bottom: 12px; }
+    .method-item h4 { color: #FF2442; margin-bottom: 8px; }
+    .method-item p { font-size: 13px; color: #666; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('overview')">📊 总览</button>
+      <button class="tab" onclick="showTab('profile')">🔍 深度画像</button>
+      <button class="tab" onclick="showTab('notes')">📋 作品一览</button>
+      <button class="tab" onclick="showTab('method')">ℹ️ 方法论</button>
+    </div>
+    
+    <!-- Tab: Overview -->
+    <div id="overview" class="tab-content active">
+      <!-- Profile Card -->
+      <div class="card">
+        <div class="profile-header">
+          <div class="profile-avatar">金</div>
+          <div class="profile-info">
+            <div class="profile-name">金达莱</div>
+            <div class="profile-bio">专业装裱，字画，十字绣</div>
+            <div class="profile-tags">
+              <span class="tag highlight">70后</span>
+              <span class="tag">女性</span>
+              <span class="tag">山东烟台</span>
+              <span class="tag">已婚有娃</span>
+              <span class="tag">个体经营</span>
+            </div>
+            <div class="profile-tags">
+              <span class="tag">🎨 字画装裱</span>
+              <span class="tag">👨‍👩‍👧‍👦 家庭生活</span>
+              <span class="tag">✈️ 旅行记录</span>
+              <span class="tag">🌸 养花种草</span>
+            </div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value">145</div>
+            <div class="stat-label">作品</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">1482</div>
+            <div class="stat-label">粉丝</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">2641</div>
+            <div class="stat-label">关注</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">2.9万</div>
+            <div class="stat-label">获赞</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quick Summary -->
+      <div class="card">
+        <h2>💡 一句话画像</h2>
+        <p style="font-size: 16px; line-height: 1.8; color: #555;">
+          山东烟台的<span class="confidence confidence-high">70后女性</span>，经营字画装裱和十字绣生意，家庭幸福美满，育有一儿一女。热爱生活、乐观豁达，喜欢用抖音记录家庭时光、旅行见闻和日常点滴。是个典型的"晒娃晒老公晒幸福"型妈妈，对生活充满感恩。
+        </p>
+      </div>
+      
+      <!-- Radar Chart -->
+      <div class="card">
+        <h2>📊 五维画像雷达</h2>
+        <div class="radar-container">
+          <div class="radar-chart-wrapper">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Content Categories -->
+      <div class="card">
+        <h2>📁 内容主题分布</h2>
+        <div id="categoryChart"></div>
+      </div>
+    </div>
+    
+    <!-- Tab: Profile -->
+    <div id="profile" class="tab-content">
+      <div class="card">
+        <h2>👤 维度一：基础人口学</h2>
+        <div class="analysis-item">
+          <h4>年龄段 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>50岁左右（70后）</strong></p>
+          <p>从多方面推断：自称"七零后的我"，女儿已成年（十八岁成人礼、大学录取），儿子还在上学。从2021年至今持续发布内容，时间跨度符合中年人特征。</p>
+          <div class="evidence">证据："七零后的我，心态好一切都好"、"录取通知书早已收到，开学即将来临"、"十八岁成人礼"</div>
+        </div>
+        <div class="analysis-item">
+          <h4>性别 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>女性</strong></p>
+          <p>主页明确标注"女"，内容以女性视角为主，经常晒老公、孩子、护肤品、旅行。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>地区 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>山东烟台（海阳/徐家店一带）</strong></p>
+          <p>IP属地显示山东，多次提及烟台、徐家店，发布房屋出租信息标注具体地址。</p>
+          <div class="evidence">证据："山东·烟台"、"徐家店牌坊旁"、"IP属地：山东"</div>
+        </div>
+        <div class="analysis-item">
+          <h4>职业 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>个体经营者：字画装裱、十字绣</strong></p>
+          <p>简介明确"专业装裱，字画，十字绣"，发布多条商品展示和销售内容。</p>
+          <div class="evidence">证据："专业装裱，字画，十字绣"、"今日出售六尺牡丹一幅，纯手工打造"、"纯手工十字绣鞋垫成品"</div>
+        </div>
+        <div class="analysis-item">
+          <h4>家庭状况 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>已婚，育有一儿一女</strong></p>
+          <p>女儿已上大学（2024年录取通知书），儿子年龄较小，经常晒老公和孩子的内容。</p>
+          <div class="evidence">证据："领着儿子进京看女儿"、"谢谢闺女给我上镜的机会"、"老公牌鲅鱼馅饺子"</div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>💰 维度二：消费与生活方式</h2>
+        <div class="analysis-item">
+          <h4>消费能力 <span class="confidence confidence-medium">中置信度</span></h4>
+          <p><strong>中等消费水平，注重性价比</strong></p>
+          <p>从内容看是普通工薪家庭，有房产出租，会去各地旅游但选择经济实惠的方式。装修新房时感谢各方帮助，体现务实节俭的生活态度。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>兴趣标签 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>家庭生活、旅行、养花、传统艺术、美食</strong></p>
+          <p>内容主题明确集中在家庭记录（占比最高）、旅行打卡（北京、杭州、广州、西湖等）、花草种植、手工艺术。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>生活方式 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>家庭导向型、记录型、分享型</strong></p>
+          <p>几乎所有内容都与家人相关，用抖音作为家庭日记本。喜欢记录生活中的小确幸，对生活充满感恩。</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>🧠 维度三：心理与人格</h2>
+        <div class="analysis-item">
+          <h4>性格特征 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>乐观豁达、感恩知足、家庭观念强</strong></p>
+          <p>内容基调非常积极正向，几乎每条都有表达感谢或祝福。自称"心态好一切都好"，遇到事情往好处想。</p>
+          <div class="evidence">证据："管他几级美颜漂亮开心就行"、"生活应该是被热爱的人和事填满"、"心态好一切都好"</div>
+        </div>
+        <div class="analysis-item">
+          <h4>情感基调 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>温暖、感恩、幸福</strong></p>
+          <p>关键词分析：高频词包括"谢谢"、"爱"、"幸福"、"快乐"、"平安"。表达方式直白真诚，大量使用🌹等表情。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>价值观 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>家庭至上、知足常乐、善良感恩</strong></p>
+          <p>把家庭放在第一位，对孩子的成长充满期待和祝福。重视亲情、感恩生活中的小事。</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>👥 维度四：社会关系与影响力</h2>
+        <div class="analysis-item">
+          <h4>用户类型 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>生活记录型创作者</strong></p>
+          <p>主要用途是记录家庭生活、展示作品、偶尔宣传生意。不是专业内容创作者，更像是把抖音当朋友圈用。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>社交圈层 <span class="confidence confidence-medium">中置信度</span></h4>
+          <p><strong>以家人和本地朋友为主</strong></p>
+          <p>关注2641人，粉丝1482人，互动主要来自亲友。内容提及姐姐、老妈、闺女好友等，社交圈稳定。</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>⏰ 维度五：时间行为模式</h2>
+        <div class="analysis-item">
+          <h4>发布规律 <span class="confidence confidence-high">高置信度</span></h4>
+          <p><strong>随性发布，集中在重要日子和旅行</strong></p>
+          <p>没有明显的运营规律，在生日、节日、旅行、家庭重要事件时发布较多。2021-2026年持续活跃。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>主题演变 <span class="confidence confidence-medium">中置信度</span></h4>
+          <p><strong>从"晒娃晒日常"到"记录全家幸福"</strong></p>
+          <p>早期更多晒孩子和唱歌，近期更多全家旅行和日常生活记录。随着孩子长大，内容重心有所变化。</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>💜 维度六：推荐内容分析</h2>
+        <p style="margin-bottom: 16px; color: #666;">推荐内容是了解用户隐性兴趣的重要窗口，共发现4条推荐：</p>
+        <div class="analysis-item">
+          <h4>推荐主题 <span class="confidence confidence-medium">中置信度</span></h4>
+          <p><strong>财税知识搞笑视频</strong></p>
+          <p>推荐的4条内容全部来自"小财女共享财税"账号，主题涉及会计日常、办公室搞笑、财税知识。可能是出于学习兴趣或与职业相关（个体经营需要了解财税知识）。</p>
+        </div>
+        <div class="analysis-item">
+          <h4>兴趣延伸 <span class="confidence confidence-low">低置信度</span></h4>
+          <p>推荐数量较少（仅4条），可能是新功能使用不多。喜欢内容设为私密，无法分析。</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab: Notes -->
+    <div id="notes" class="tab-content">
+      <div class="card">
+        <h2>📋 作品一览（共134条）</h2>
+        <input type="text" class="search-input" placeholder="搜索作品标题..." onkeyup="filterNotes(this.value)">
+        <div class="notes-list" id="notesList"></div>
+      </div>
+    </div>
+    
+    <!-- Tab: Method -->
+    <div id="method" class="tab-content">
+      <div class="card">
+        <h2>📊 数据采集报告</h2>
+        <div class="method-item">
+          <h4>采集时间</h4>
+          <p>2026年3月28日</p>
+        </div>
+        <div class="method-item">
+          <h4>数据来源</h4>
+          <p>抖音公开主页内容，通过浏览器自动化采集</p>
+        </div>
+        <div class="method-item">
+          <h4>采集量</h4>
+          <p>作品总数145条，成功扫描134条（覆盖率92%）</p>
+        </div>
+        <div class="method-item">
+          <h4>推荐内容</h4>
+          <p>4条（财税搞笑类）</p>
+        </div>
+        <div class="method-item">
+          <h4>喜欢内容</h4>
+          <p>用户已设为私密，不可见</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>⚠️ 局限性声明</h2>
+        <div class="method-item">
+          <h4>数据局限性</h4>
+          <p>1. 仅分析公开可见内容，私密内容无法获取</p>
+          <p>2. 喜欢内容设为私密，无法分析隐性兴趣</p>
+          <p>3. 未登录状态下部分内容可能受限</p>
+        </div>
+        <div class="method-item">
+          <h4>推断局限性</h4>
+          <p>1. 所有画像推断基于公开社交媒体内容，不等同于现实</p>
+          <p>2. 心理和性格分析仅为间接推断，不构成专业评估</p>
+          <p>3. 置信度仅供参考，实际可能与本人认知存在差异</p>
+        </div>
+        <div class="method-item">
+          <h4>伦理声明</h4>
+          <p>本报告仅基于公开信息进行分析，未使用任何非公开数据。分析结果仅供参考，不得用于商业用途或侵犯个人隐私。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Notes data
+    const notes = [{"title":"在无法预料的未来里，我们岁岁平平安安就好","likes":"320"},{"title":"#愿我们都保持孩童般笑容 #生活百般滋味你要笑着面对","likes":"231"},{"title":"新年快乐！万事如意！心想事成！#欢欢喜喜过大年","likes":"242"},{"title":"#陪我疯陪我闹#爱就是一起拍很多张照片 #享受阳光享受生活 #愉快的旅行打卡","likes":"173"},{"title":"2026，马年吉祥，马年行大运，发大财","likes":"183"},{"title":"祝亲爱的们马年大吉！万事胜意！2026多喜，多金，多顺遂","likes":"147"},{"title":"余生快乐！","likes":"145"},{"title":"福气粘粘来了。谢谢闺女给我上镜的机会，爱你么么哒","likes":"227"},{"title":"跟闺女拍个写真前序是不是不错，照片洗了在来展示","likes":"207"},{"title":"北京天安门逛一逛心情好的很就是有点冷嗖嗖","likes":"215"},{"title":"领着儿子进京看女儿，出发","likes":"231"},{"title":"老公说用了几级美颜，我说管他几级美颜漂亮开心就行，管他三七二十一呢！","likes":"228"},{"title":"录取通知书早已收到，开学即将来临，希望如此可爱优秀的大男孩开启人生的价值，加油","likes":"230"},{"title":"#努力就会有收获#太不容易了 ，上岸","likes":"142"},{"title":"#搭档组合 #记录一下 旅途愉快宝贝们","likes":"161"},{"title":"#奔赴山海","likes":"105"},{"title":"【吉房出租】徐家店牌坊旁·中心地段·带院门面房","likes":"81"},{"title":"不是炫耀，是想对闺女说声谢谢🌹","likes":"214"},{"title":"摘蓝莓不糙","likes":"98"},{"title":"老公牌鲅鱼馅饺子，舌尖上的中国美食","likes":"119"},{"title":"十八岁成人礼，母亲节的到来就这么碰巧","likes":"212"},{"title":"#一岁一欢喜岁岁皆如意 #年年有今曰岁岁有今朝 #永远十八岁","likes":"0"},{"title":"生活应该是被热爱的人和事填满。","likes":"0"},{"title":"晒一下我家皮夹克，全网都在晒皮夹克抱抱","likes":"0"},{"title":"祝大家新年快乐！过年好！","likes":"0"},{"title":"结婚纪念日仪式感来了","likes":"0"},{"title":"#但愿你的眼睛只看得到笑容，一首老歌再回首","likes":"0"},{"title":"一晃又一秋，爱在每个瞬间","likes":"0"},{"title":"落叶转场带来秋天之美","likes":"0"},{"title":"一起走过的日子","likes":"0"},{"title":"祝福老妈生日快乐！身体健康！平安喜乐！长寿安康！","likes":"0"},{"title":"#苹果熟了的季节 #红富士苹果","likes":"0"},{"title":"深深的话浅浅的说，长长的路慢慢的走。#广州","likes":"0"},{"title":"一般般的我只是一般般的亮，一般般的你我也看不上。","likes":"0"},{"title":"去不了北京，总得来趟北京路吧！","likes":"0"},{"title":"#鲜花蛋糕仪式感不能少 #永远十八岁 生日快乐","likes":"0"},{"title":"陪你们长大陪你们看世界","likes":"0"},{"title":"神兽归笼第一天第二天……开启","likes":"0"},{"title":"就说这地干不干净，我的花花草草欧不欧克","likes":"0"},{"title":"#很喜欢的一首歌 无论生活有多苦涩我依然是欢乐的","likes":"0"},{"title":"#陪伴是更适合的爱 #母子俩像吗","likes":"0"},{"title":"#相册记录生活 #一如年少模样","likes":"0"},{"title":"爱情在岁月中流转，我们在时光中成长","likes":"0"},{"title":"#年龄只是一个数字 #爱笑的人运气不会差","likes":"0"},{"title":"#照片里的时光 #陪伴是无法替代的","likes":"0"},{"title":"#真材实料才能做出好味道#纯手工制作美食","likes":"0"},{"title":"皮夹克酷不酷，娘俩同框","likes":"0"},{"title":"来生做个爷们把今生的我娶了","likes":"0"},{"title":"#一转眼都已经这么大了 #爱的礼物，知足，感恩，微笑，简单。","likes":"0"},{"title":"#笑口常开好彩自然来，祝大家笑口常开","likes":"0"},{"title":"冬至快乐，冬至记得吃饺子。","likes":"0"},{"title":"不是不会干，就是不干呀，真材实料才能做出好味道","likes":"0"},{"title":"爱生活爱养花，一花一草一世界。","likes":"0"},{"title":"愿余生一切安好","likes":"0"},{"title":"湖边风景 吹吹风散散心","likes":"0"},{"title":"杭州西湖美景","likes":"0"},{"title":"杭州走起","likes":"0"},{"title":"####岁月匆匆一转眼就老了","likes":"0"},{"title":"我家的花花草草，暖洋洋的家","likes":"0"},{"title":"沿途风景随拍，简简单单平平淡淡就好","likes":"0"},{"title":"喜迎国庆，还是老歌好听","likes":"0"},{"title":"唱两句","likes":"0"},{"title":"@#哈哈我又冒出来了😝😜 #想唱就唱起来","likes":"0"},{"title":"今日出售六尺牡丹一幅，纯手工打造","likes":"0"},{"title":"七零后的我，心态好一切都好。","likes":"0"},{"title":"时间过得真快呀，时光匆匆岁月无声，转眼已是半生","likes":"0"},{"title":"想唱就唱开心就好 忘掉年龄善待自己","likes":"0"},{"title":"今天我是来过生日的，也㊗圈里朋友节日快乐，暴富暴美~","likes":"0"},{"title":"吉房出租，位于204国道徐家店菜市场源头","likes":"0"},{"title":"平安和健康是一生最好的礼物 祝我们2023年越来越好","likes":"0"},{"title":"愿所有的美好和期待2023都能如约而至","likes":"0"},{"title":"祝大家2023年兔年大吉好运连连财源滚滚，相聚时光留下美好回忆","likes":"0"},{"title":"俺哥的又一大片，晚秋时节的诗情画意","likes":"0"},{"title":"感谢每一位付出的亲朋好友十分感谢！装修新房","likes":"0"},{"title":"每一张照片都是满满的回忆和足迹","likes":"0"},{"title":"遇见秋天遇见所有美好","likes":"0"},{"title":"粉黛乱子草有多惊艳","likes":"0"},{"title":"国庆节快乐，祝福大家都平安健康幸福快乐","likes":"0"},{"title":"每一个瞬间都值得被记录，一起享受大自然的美丽","likes":"0"},{"title":"美好时光留住美好的回忆，感恩有你们","likes":"0"},{"title":"#愿秋风不燥岁月静好时光不老 #感受大自然的气息和美景","likes":"0"},{"title":"夏日情怀，约吧@#一起享受大自然的美","likes":"0"},{"title":"遇见#感受大自然的气息和美景","likes":"0"},{"title":"吉房出租出售，地理位置优越，价格美丽","likes":"0"},{"title":"我不爱你谁爱你❤#忘掉年龄善待自己 #快乐心态快乐生活","likes":"0"},{"title":"一个既普通又特殊的日子，致自己，致爱人，致父母，致孩子","likes":"0"},{"title":"来日方长#开心就好","likes":"0"},{"title":"一天的翻山越岭值得拥有，累并快乐着，加油吧仙女们！！！","likes":"0"},{"title":"母亲节快乐🌹🌹🌹#一家人在一起就是幸福","likes":"0"},{"title":"摘草莓🍓#美美哒💖💖💖","likes":"0"},{"title":"2022年，2月22日，特殊时期特别日子，祝李佳铖生日快乐","likes":"0"},{"title":"女神节快乐🌹🌹🌹","likes":"0"},{"title":"今年你最旺，旺旺旺","likes":"0"},{"title":"2022.继续哈酒吧","likes":"0"},{"title":"除了高鼻梁好看，其他忽略不计#不知不觉就老了","likes":"0"},{"title":"#冰墩墩妆容 美女一起@小未","likes":"0"},{"title":"恭喜发财#美美哒💖💖💖","likes":"0"},{"title":"新年好呀新年好呀祝福大家新年好","likes":"0"},{"title":"看看我这些个情人，爱你们","likes":"0"},{"title":"2021珍惜当下，珍惜拥有 2022","likes":"0"},{"title":"哈吧调，够了吧调👌👌👌","likes":"0"},{"title":"生命中最重要的人，留下这份珍贵。愿孩子们成为自己喜欢的样子","likes":"0"},{"title":"祝老妈生日快乐！健康长寿，平平安安。","likes":"0"},{"title":"一家人在一起开心最重要，致我最亲爱的家人们🌹","likes":"0"},{"title":"哈哈哈哈，丑点嘴硬就好挨揍了","likes":"0"},{"title":"幸福的味道，简单的幸福👍👍👍🌹🌹🌹","likes":"0"},{"title":"成长的路上好好学习，让梦想飞吧","likes":"0"},{"title":"第一次开着车跑高速，旁边李老师给力","likes":"0"},{"title":"归来的惊喜，简单的礼物，玉石，碧玺，老公送的礼物🎁","likes":"0"},{"title":"有您就幸福，祝福老妈身体建康平平安安👄🌹","likes":"0"},{"title":"平安喜乐🍺🍺🍺","likes":"0"},{"title":"只要一家人好好的，来吧，干杯🍻","likes":"0"},{"title":"一起上山挖野菜了，累并快乐着😜😜😜","likes":"0"},{"title":"锦宏驾校欢迎您👍👍👍","likes":"0"},{"title":"这小身体有谁不爱呢😜😜😜，我也拼了减肥减肥💪💪💪","likes":"0"},{"title":"感恩节快乐🌹🌹🌹，感谢有您，感谢所有朋友🌹🌹🌹","likes":"0"},{"title":"纯手工十字绣鞋垫成品，39-45码，店里有货","likes":"0"},{"title":"欢聚在一起，祝姐姐生日快乐👄永远年轻漂亮👑👑👑","likes":"0"},{"title":"幸福的味道👍👍👍","likes":"0"},{"title":"勇敢的向前走，加油，欧耶👍","likes":"0"},{"title":"品牌绿航绿萝，富贵竹，到货了，亲爱的们赶紧抢购吧","likes":"0"},{"title":"富贵竹到货了，亲爱的们店里有货，👍👍👍","likes":"0"},{"title":"#老照片里的旧时光 和美女合个影吧🌹🌹🌹🌹🌹🌹👄👄👄","likes":"0"},{"title":"这帮孩子一晚上就学会了，不错加油！👍👍👍","likes":"0"},{"title":"心醉醉，梦醉醉，歌唱你的美，🌹🌹🌹嗓子都唱哑了","likes":"0"},{"title":"暖阳下我迎芬芳，是谁家姑娘的妈妈在跟风，嘿嘿","likes":"0"},{"title":"一晃就老了","likes":"0"},{"title":"#百花齐放总是春 #迎风摇曳小雏菊 给老公做的纯手工鞋垫","likes":"0"},{"title":"富贵竹抢购中","likes":"0"}];
+    
+    // Render notes list
+    function renderNotes(filteredNotes) {
+      const container = document.getElementById('notesList');
+      container.innerHTML = filteredNotes.map(note => `
+        <div class="note-item">
+          <span class="note-title">${note.title}</span>
+          <span class="note-likes">❤️ ${note.likes}</span>
+        </div>
+      `).join('');
+    }
+    
+    function filterNotes(query) {
+      const filtered = notes.filter(n => n.title.toLowerCase().includes(query.toLowerCase()));
+      renderNotes(filtered);
+    }
+    
+    renderNotes(notes);
+    
+    // Tab switching
+    function showTab(id) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+    
+    // Radar chart
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['家庭导向', '乐观积极', '社交活跃', '兴趣广度', '内容专业度'],
+        datasets: [{
+          label: '画像得分',
+          data: [95, 90, 45, 60, 70],
+          backgroundColor: 'rgba(255, 36, 66, 0.2)',
+          borderColor: '#FF2442',
+          borderWidth: 2,
+          pointBackgroundColor: '#FF2442'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { stepSize: 20 }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+    
+    // Category chart
+    const categories = [
+      { name: '家庭生活', count: 45, color: '#FF2442' },
+      { name: '旅行打卡', count: 18, color: '#ff6b6b' },
+      { name: '花草/自然', count: 15, color: '#ffa94d' },
+      { name: '商品推广', count: 12, color: '#69db7c' },
+      { name: '节日祝福', count: 10, color: '#4dabf7' },
+      { name: '唱歌/娱乐', count: 8, color: '#da77f2' },
+      { name: '其他', count: 26, color: '#868e96' }
+    ];
+    
+    const maxCount = Math.max(...categories.map(c => c.count));
+    document.getElementById('categoryChart').innerHTML = categories.map(cat => `
+      <div class="category-bar">
+        <span class="category-label">${cat.name}</span>
+        <div class="category-fill" style="width: ${(cat.count / maxCount) * 80}%; background: ${cat.color};">
+          ${cat.count}条
+        </div>
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>
