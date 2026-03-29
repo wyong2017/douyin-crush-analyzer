@@ -27,9 +27,9 @@
   <!-- Emoji icon -->
   <text x="100" y="155" font-size="72" text-anchor="middle" filter="url(#glow)">🔮</text>
   <!-- Main Title -->
-  <text x="480" y="100" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif" font-size="40" font-weight="800" fill="white" text-anchor="middle" letter-spacing="2">小红书 Crush 分析器</text>
+  <text x="480" y="100" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif" font-size="40" font-weight="800" fill="white" text-anchor="middle" letter-spacing="2">抖音 Crush 分析器</text>
   <!-- Subtitle -->
-  <text x="480" y="140" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif" font-size="18" fill="rgba(255,255,255,0.9)" text-anchor="middle">给我一个小红书链接，AI 帮你读懂 TA 的一切</text>
+  <text x="480" y="140" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif" font-size="18" fill="rgba(255,255,255,0.9)" text-anchor="middle">给我一个抖音链接，AI 帮你读懂 TA 的一切</text>
   <!-- Tagline -->
   <text x="480" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.65)" text-anchor="middle">Powered by Claude Desktop + 5 Psychology Theories + Claude in Chrome</text>
   <!-- Tags row -->
@@ -42,7 +42,7 @@
   <rect x="495" y="192" width="100" height="28" rx="14" fill="rgba(255,255,255,0.15)"/>
   <text x="545" y="211" font-family="system-ui, sans-serif" font-size="12" fill="white" text-anchor="middle">交互式报告</text>
   <rect x="605" y="192" width="100" height="28" rx="14" fill="rgba(255,255,255,0.15)"/>
-  <text x="655" y="211" font-family="system-ui, sans-serif" font-size="12" fill="white" text-anchor="middle">Claude Skill</text>
+  <text x="655" y="211" font-family="system-ui, sans-serif" font-size="12" fill="white" text-anchor="middle">Skill</text>
   <!-- Bottom accent line -->
   <rect x="350" y="240" width="200" height="3" rx="1.5" fill="rgba(255,255,255,0.3)"/>
 </svg>
