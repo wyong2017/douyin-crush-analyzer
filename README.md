@@ -14,12 +14,12 @@
 </p>
 
 <p align="center">
-  <a href="https://lhfer.github.io/xiaohongshu-crush-analyzer/">👉 点击体验 Live Demo（真实报告效果）👈</a>
+  <a href="https://wyong2017.github.io/douyin-crush-analyzer/">👉 点击体验 Live Demo（真实报告效果）👈</a>
 </p>
 
 <p align="center">
   <a href="#-30-秒看懂它能干嘛">看懂它</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="https://lhfer.github.io/xiaohongshu-crush-analyzer/">Live Demo</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="https://wyong2017.github.io/douyin-crush-analyzer/">Live Demo</a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#-安装只需-1-分钟">安装</a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#-使用方法">使用</a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#-faq">FAQ</a>
@@ -49,13 +49,13 @@
 ### 先看报告长什么样
 
 <p align="center">
-  <a href="https://lhfer.github.io/xiaohongshu-crush-analyzer/">
+  <a href="https://wyong2017.github.io/douyin-crush-analyzer/">
     <img src="assets/preview.png" alt="点击体验完整 Demo" width="800"/>
   </a>
 </p>
 
 <p align="center">
-  <a href="https://lhfer.github.io/xiaohongshu-crush-analyzer/">
+  <a href="https://wyong2017.github.io/douyin-crush-analyzer/">
     <img src="https://img.shields.io/badge/🔮_点击体验完整报告-Live_Demo-FF2442?style=for-the-badge" alt="Live Demo"/>
   </a>
 </p>
@@ -108,8 +108,8 @@
 
 ### 你需要准备
 
-- [Openclaw](https://claude.ai/download)（Cowork 模式）
-- [Agent Browser](https://chromewebstore.google.com/detail/claude-in-chrome/) 浏览器扩展
+- [Openclaw](https://openclaw.ai/)（Cowork 模式）
+- [Agent Browser](https://github.com/vercel-labs/agent-browser) 浏览器扩展
 - 浏览器里 **登录了抖音**（不登录只能看 10 条作品，登录后能看全部）
 
 ### 安装 Skill
